@@ -1,0 +1,63 @@
+# ----------------------------
+# Python
+# ----------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.egg
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.env
+
+# PyInstaller
+*.spec
+
+# Distribution / packaging
+build/
+dist/
+*.manifest
+*.spec
+
+# Logs and temp files
+*.log
+*.tmp
+*.bak
+*.swp
+
+# ----------------------------
+# JetBrains / PyCharm
+# ----------------------------
+.idea/
+# If you want to keep certain PyCharm configs, uncomment specific files:
+# !.idea/codeStyles/
+# !.idea/runConfigurations/
+# !.idea/inspectionProfiles/
+
+# ----------------------------
+# VS Code (optional, in case you switch editors)
+# ----------------------------
+.vscode/
+
+# ----------------------------
+# OS-specific
+# ----------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ----------------------------
+# Custom / Project-specific
+# ----------------------------
+# Add any local credentials or cache files here
+*.local
+*.cache
