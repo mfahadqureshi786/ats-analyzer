@@ -1,7 +1,11 @@
 from keybert import KeyBERT
 import yake
 import langid
-
+import re
+import spacy
+from spacy.matcher import PhraseMatcher
+from skillNer.skill_extractor_class import SkillExtractor
+from skillNer.general_params import SKILL_DB  # dict in v1.x
 # 1️⃣ Example texts
 cv_text = """
 Erfahrener Softwareentwickler mit Kenntnissen in Python, Django und REST API Entwicklung.
@@ -31,24 +35,76 @@ def detect_lang(text):
     return lang if lang in ["en", "de"] else "en"
 
 # 5️⃣ Master extraction with language switch
-def extract_keywords(text, lang=None, top_k=10):
+def extract_keywords(text, lang=None, top_k=50):
     """
-    Extract keywords from text.
-    lang: "en" for English, "de" for German, or None for auto-detect.
+    Extract hard-skill keywords using SkillNER (v1.0.3) with robust fallbacks.
+    - Uses requested/detected language ('en'/'de').
+    - If SkillNER returns no results, falls back to a direct PhraseMatcher over SKILL_DB.
+    - If lang='de' still yields nothing, retries with English model.
+    Returns a deduped, lowercased list (optionally trimmed to top_k).
     """
-    # Auto-detect if not provided
-    if not lang:
-        lang = detect_lang(text)
-    print(f"🗣 Detected/Selected language: {lang}")
+    if not text or not text.strip():
+        return []
 
-    # YAKE language code is usually 'en' or 'de'
-    yake_keywords = extract_yake(text, lang=lang, top_k=top_k)
-    bert_keywords = extract_keybert(text, top_k=top_k)
-    # Normalize to lowercase before deduplication
-    combined = [kw.lower().strip() for kw in (yake_keywords + bert_keywords)]
-    # Merge and deduplicate
-    combined = list(set(combined))
-    return combined
+    def _run_with_lang(model_lang: str):
+        # use german language model incase its needed
+        model_name = "en_core_web_lg"
+        nlp = spacy.load(model_name)
+        nlp.max_length = max(nlp.max_length, 2_000_000)
+
+        # 1) Try SkillNER
+        extractor = SkillExtractor(nlp, SKILL_DB, PhraseMatcher)
+        skills = []
+        try:
+            ann = extractor.annotate(text)
+            results = ann.get("results", {})
+            print("result", results)
+            for group in ("full_matches", "ngram_scored"):
+                if group in results:
+                    for item in results[group]:
+                        val = (item.get("doc_node_value") or "").strip().lower()
+                        if val and val not in skills:
+                            skills.append(val)
+                            print(val)
+        except Exception:
+            skills = []
+
+        # 2) Fallback: direct PhraseMatcher over SKILL_DB if still empty
+        if not skills:
+            print("No skills found, using fallback phrasematcher")
+            pm = PhraseMatcher(nlp.vocab, attr="LOWER")
+            # Build patterns from skill names (filter extremes to keep it snappy)
+            names = [name for name in SKILL_DB.keys() if 1 < len(name) < 60]
+            # Avoid exceeding add() limits by chunking if needed
+            chunk = 2000
+            for i in range(0, len(names), chunk):
+                docs = [nlp.make_doc(n) for n in names[i:i+chunk]]
+                pm.add(f"SKILL_{i//chunk}", docs)
+
+            doc = nlp(text)
+            for _, start, end in pm(doc):
+                val = doc[start:end].text.strip().lower()
+                if val and val not in skills:
+                    skills.append(val)
+        return skills
+
+    # Resolve language
+    code = (lang or detect_lang(text) or "en").lower()
+
+    skills = _run_with_lang(code)
+    # If German path yields nothing, try English as a pragmatic fallback
+    if not skills and code.startswith("de"):
+        skills = _run_with_lang("en")
+
+    # Trim to top_k deterministically
+    if top_k and len(skills) > top_k:
+        skills = skills[:top_k]
+
+    return skills
+
+
+
+
 
 # 6️⃣ Run extraction manually with language switch
 # cv_keywords = extract_keywords(cv_text, lang="de")  # Force German

@@ -1,3 +1,5 @@
+yake
+skillner
 fastapi
 uvicorn
 pdfplumber
