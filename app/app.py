@@ -22,10 +22,10 @@ st.caption("Upload a PDF resume and paste a job description — get ATS match, l
 # ---------------------------------------------------------
 col1, col2 = st.columns(2)
 
-with col1:
+with col2:
     uploaded = st.file_uploader("Upload your Resume (PDF)", type=["pdf"])
 
-with col2:
+with col1:
     job_description_input = st.text_area(
         "Job Description:",
         key="job_desc_txt_area",
