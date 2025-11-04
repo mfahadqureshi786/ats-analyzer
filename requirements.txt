@@ -1,15 +1,29 @@
-yake
-skillner
-fastapi
-uvicorn
+# Core framework
+streamlit==1.38.0
+pandas==2.2.2
+PyPDF2==3.0.1
+
+# NLP / ML
+spacy==3.7.5
+sentence-transformers==2.7.0
+torch==2.3.1
+transformers>=4.40.0
+
+# Keyword extraction
+keybert==0.8.4
+yake==0.4.8
+langid==1.1.6
+
+# Skill extraction
+skillNer==1.0.3
+ipython==8.27.0
+
+# Optional but useful utilities
 pdfplumber
 python-docx
-spacy
-sentence-transformers
-keybert
+fastapi
+uvicorn
 requests
-streamlit==1.38.0
-PyPDF2==3.0.1
-pandas==2.2.2
-langid
-ipython
+
+# spaCy large English model
+https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.7.1/en_core_web_lg-3.7.1.tar.gz
