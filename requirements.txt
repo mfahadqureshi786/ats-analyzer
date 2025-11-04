@@ -1,5 +1,6 @@
 # Core framework
 streamlit==1.38.0
+numpy==1.26.4
 pandas==2.2.2
 PyPDF2==3.0.1
 
